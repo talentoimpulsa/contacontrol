@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ContaControl – Demo</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  * { font-family: 'Inter', sans-serif; }
+
+  body { background: #f0f2f5; }
+
+  .sidebar { width: 240px; }
+
+  .active-menu {
+    background: #1e40af;
+    color: white !important;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .badge-red    { background: #fee2e2; color: #b91c1c; }
+  .badge-yellow { background: #fef9c3; color: #92400e; }
+  .badge-green  { background: #dcfce7; color: #15803d; }
+  .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+  .badge-gray   { background: #f1f5f9; color: #475569; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 50;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  /* Highlight row */
+  tbody tr:hover { background: #f8fafc; }
+
+  /* Progress bar */
+  .progress-bar-wrap { background: #e2e8f0; border-radius: 9999px; height: 6px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; border-radius: 9999px; }
+
+  /* Pulse dot */
+  .dot-live {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: .5; transform: scale(1.4); }
+  }
+</style>
+</head>
+<body>
+
+<div class="flex min-h-screen">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar bg-slate-900 text-white p-5 fixed h-full flex flex-col">
+
+    <div class="mb-8">
+      <h1 class="text-lg font-bold text-white">ContaControl</h1>
+      <p class="text-slate-400 text-xs mt-1">Estudio Contable Demo</p>
+    </div>
+
+    <nav class="space-y-1 flex-1">
+
+      <button onclick="showPage('dashboard',this)" class="menu-item w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 text-sm active-menu">
+        📊 Dashboard
+      </button>
+
+      <button onclick="showPage('seguimiento',this)" class="menu-item w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 text-sm font-semibold">
+        👁 Seguimiento Operativo
+      </button>
+
+      <div class="pt-3 pb-1 px-3 text-slate-500 text-xs uppercase tracking-widest">Gestión</div>
+
+      <button onclick="showPage('clientes',this)" class="menu-item w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 text-sm">
+        👤 Clientes
+      </button>
+
+      <button onclick="showPage('vencimientos',this)" class="menu-item w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 text-sm">
+        📅 Vencimientos
+      </button>
+
+      <button onclick="showPage('tareas',this)" class="menu-item w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 text-sm">
+        ✅ Tareas
+      </button>
+
+      <button onclick="showPage('honorarios',this)" class="menu-item w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 text-sm">
+        💰 Honorarios
+      </button>
+
+      <button onclick="showPage('equipo',this)" class="menu-item w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 text-sm">
+        👥 Equipo
+      </button>
+
+      <div class="pt-3 pb-1 px-3 text-slate-500 text-xs uppercase tracking-widest">Otros</div>
+
+      <button onclick="showPage('crm',this)" class="menu-item w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 text-sm">
+        💬 CRM
+      </button>
+
+      <button onclick="showPage('documentos',this)" class="menu-item w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 text-sm">
+        📁 Documentos
+      </button>
+
+    </nav>
+
+    <div class="mt-4 text-slate-500 text-xs">Demo v3 · 2026</div>
+
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="ml-[240px] flex-1 p-8">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h2 id="page-title" class="text-2xl font-bold text-slate-800">Dashboard</h2>
+        <p class="text-slate-400 text-sm">Lunes 15 de junio, 2026</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="flex items-center gap-1.5 text-sm text-slate-500"><span class="dot-live"></span> En vivo</span>
+        <div class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-medium shadow-sm">
+          Demo Admin
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <section id="dashboard" class="page">
+
+      <!-- KPIs -->
+      <div class="grid grid-cols-4 gap-4 mb-6">
+
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100">
+          <p class="text-slate-500 text-xs uppercase tracking-wide mb-1">Clientes Activos</p>
+          <p class="text-3xl font-bold text-slate-800">47</p>
+        </div>
+
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-orange-100">
+          <p class="text-slate-500 text-xs uppercase tracking-wide mb-1">Vencimientos próximos</p>
+          <p class="text-3xl font-bold text-orange-500">18</p>
+        </div>
+
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-red-100">
+          <p class="text-slate-500 text-xs uppercase tracking-wide mb-1">Tareas Pendientes</p>
+          <p class="text-3xl font-bold text-red-500">12</p>
+        </div>
+
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-green-100">
+          <p class="text-slate-500 text-xs uppercase tracking-wide mb-1">Honorarios Pendientes</p>
+          <p class="text-3xl font-bold text-green-600">$330.000</p>
+        </div>
+
+      </div>
+
+      <!-- Row 2: Chart + Alertas -->
+      <div class="grid grid-cols-2 gap-5 mb-5">
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+          <h3 class="font-semibold text-slate-700 mb-4">Facturación mensual</h3>
+          <canvas id="facturacionChart"></canvas>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+          <h3 class="font-semibold text-slate-700 mb-4">⚠️ Alertas Críticas</h3>
+          <div class="space-y-2.5">
+            <div class="bg-red-50 border border-red-200 p-3 rounded-lg text-sm flex items-start gap-2">
+              <span>🔴</span>
+              <div>
+                <strong>Romero Carlos</strong> – IVA Junio vencido (18/06)
+                <p class="text-red-500 text-xs mt-0.5">Responsable: Valeria Sosa · Sin actualización hace 3 días</p>
+              </div>
+            </div>
+            <div class="bg-red-50 border border-red-200 p-3 rounded-lg text-sm flex items-start gap-2">
+              <span>🔴</span>
+              <div>
+                <strong>Bogado Silvina</strong> – Municipalidad vencida (12/06)
+                <p class="text-red-500 text-xs mt-0.5">Responsable: Diego Molina · Bloqueado: falta habilitación</p>
+              </div>
+            </div>
+            <div class="bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-sm flex items-start gap-2">
+              <span>🟡</span>
+              <div>
+                <strong>Gutiérrez Tomás</strong> – IIBB vence mañana (16/06)
+                <p class="text-yellow-700 text-xs mt-0.5">Responsable: Valeria Sosa · En proceso</p>
+              </div>
+            </div>
+            <div class="bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-sm flex items-start gap-2">
+              <span>🟡</span>
+              <div>
+                <strong>Ferreyra SA</strong> – SICORE vence en 2 días (17/06)
+                <p class="text-yellow-700 text-xs mt-0.5">Responsable: Natalia Ponce · Pendiente</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Row 3: Estado del Equipo HOY (nuevo widget) -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="font-semibold text-slate-700">👥 Estado del Equipo Hoy</h3>
+          <button onclick="showPageByName('seguimiento')" class="text-blue-600 text-sm hover:underline">Ver detalle completo →</button>
+        </div>
+
+        <div class="grid grid-cols-4 gap-4">
+
+          <!-- Ana -->
+          <div class="border border-slate-200 rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">VS</div>
+              <div>
+                <p class="font-semibold text-sm">Valeria Sosa</p>
+                <p class="text-slate-400 text-xs">15 clientes</p>
+              </div>
+            </div>
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs"><span class="text-slate-500">Tareas abiertas</span><span class="font-semibold text-orange-600">7</span></div>
+              <div class="flex justify-between text-xs"><span class="text-slate-500">Vencimientos esta semana</span><span class="font-semibold text-red-600">3</span></div>
+              <div class="flex justify-between text-xs"><span class="text-slate-500">Completadas hoy</span><span class="font-semibold text-green-600">2</span></div>
+              <div class="mt-2">
+                <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Cumplimiento</span><span class="font-semibold">74%</span></div>
+                <div class="progress-bar-wrap"><div class="progress-bar-fill bg-blue-500" style="width:74%"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Juan -->
+          <div class="border border-slate-200 rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm">DM</div>
+              <div>
+                <p class="font-semibold text-sm">Diego Molina</p>
+                <p class="text-slate-400 text-xs">12 clientes</p>
+              </div>
+            </div>
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs"><span class="text-slate-500">Tareas abiertas</span><span class="font-semibold text-orange-600">3</span></div>
+              <div class="flex justify-between text-xs"><span class="text-slate-500">Vencimientos esta semana</span><span class="font-semibold text-yellow-600">2</span></div>
+              <div class="flex justify-between text-xs"><span class="text-slate-500">Completadas hoy</span><span class="font-semibold text-green-600">1</span></div>
+              <div class="mt-2">
+                <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Cumplimiento</span><span class="font-semibold">88%</span></div>
+                <div class="progress-bar-wrap"><div class="progress-bar-fill bg-emerald-500" style="width:88%"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Natdia -->
+          <div class="border border-slate-200 rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold text-sm">NP</div>
+              <div>
+                <p class="font-semibold text-sm">Natalia Ponce</p>
+                <p class="text-slate-400 text-xs">10 clientes</p>
+              </div>
+            </div>
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs"><span class="text-slate-500">Tareas abiertas</span><span class="font-semibold text-orange-600">5</span></div>
+              <div class="flex justify-between text-xs"><span class="text-slate-500">Vencimientos esta semana</span><span class="font-semibold text-red-600">4</span></div>
+              <div class="flex justify-between text-xs"><span class="text-slate-500">Completadas hoy</span><span class="font-semibold text-green-600">0</span></div>
+              <div class="mt-2">
+                <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Cumplimiento</span><span class="font-semibold text-orange-600">61%</span></div>
+                <div class="progress-bar-wrap"><div class="progress-bar-fill bg-orange-400" style="width:61%"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sofíala -->
+          <div class="border border-slate-200 rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-sm">SI</div>
+              <div>
+                <p class="font-semibold text-sm">Sofía Irusta</p>
+                <p class="text-slate-400 text-xs">10 clientes</p>
+              </div>
+            </div>
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs"><span class="text-slate-500">Tareas abiertas</span><span class="font-semibold text-orange-600">4</span></div>
+              <div class="flex justify-between text-xs"><span class="text-slate-500">Vencimientos esta semana</span><span class="font-semibold text-yellow-600">1</span></div>
+              <div class="flex justify-between text-xs"><span class="text-slate-500">Completadas hoy</span><span class="font-semibold text-green-600">3</span></div>
+              <div class="mt-2">
+                <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Cumplimiento</span><span class="font-semibold">92%</span></div>
+                <div class="progress-bar-wrap"><div class="progress-bar-fill bg-blue-500" style="width:92%"></div></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== SEGUIMIENTO OPERATIVO ==================== -->
+    <section id="seguimiento" class="page hidden">
+
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-800">Seguimiento Operativo</h2>
+          <p class="text-slate-400 text-sm">Visibilidad en tiempo real de cada trámite por colaborador</p>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 mb-5 flex flex-wrap gap-3 items-center">
+        <span class="text-sm text-slate-500 font-medium">Filtrar por:</span>
+
+        <select id="filtro-responsable" onchange="filtrarSeguimiento()" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700">
+          <option value="">Todos los colaboradores</option>
+          <option value="Valeria Sosa">Valeria Sosa</option>
+          <option value="Diego Molina">Diego Molina</option>
+          <option value="Natalia Ponce">Natalia Ponce</option>
+          <option value="Sofía Irusta">Sofía Irusta</option>
+        </select>
+
+        <select id="filtro-estado" onchange="filtrarSeguimiento()" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700">
+          <option value="">Todos los estados</option>
+          <option value="Pendiente">Pendiente</option>
+          <option value="En Proceso">En Proceso</option>
+          <option value="Revisión">Revisión</option>
+          <option value="Bloqueado">Bloqueado</option>
+          <option value="Finalizado">Finalizado</option>
+        </select>
+
+        <select id="filtro-tramite" onchange="filtrarSeguimiento()" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700">
+          <option value="">Todos los trámites</option>
+          <option value="IVA">IVA</option>
+          <option value="IIBB">IIBB</option>
+          <option value="SICORE">SICORE</option>
+          <option value="Ganancias">Ganancias</option>
+          <option value="Sueldos">Sueldos</option>
+          <option value="CS Sociales">CS Sociales</option>
+          <option value="Municipalidad">Municipalidad</option>
+        </select>
+
+        <button onclick="limpiarFiltros()" class="text-blue-600 text-sm hover:underline ml-auto">Limpiar filtros</button>
+      </div>
+
+      <!-- Tabla principal -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <table class="w-full text-sm" id="tabla-seguimiento">
+          <thead class="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th class="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Cliente</th>
+              <th class="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Responsable</th>
+              <th class="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Trámite</th>
+              <th class="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Estado</th>
+              <th class="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Vencimiento</th>
+              <th class="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide">Últ. actualización</th>
+              <th class="text-left px-4 py-3 text-slate-500 font-medium text-xs uppercase tracking-wide"></th>
+            </tr>
+          </thead>
+          <tbody id="seguimiento-body">
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- ==================== CLIENTES ==================== -->
+    <section id="clientes" class="page hidden">
+
+      <div class="flex justify-between mb-6">
+        <h2 class="text-2xl font-bold text-slate-800">Clientes</h2>
+        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ Nuevo Cliente</button>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th class="p-4 text-left text-slate-500 font-medium text-xs uppercase tracking-wide">Cliente</th>
+              <th class="p-4 text-left text-slate-500 font-medium text-xs uppercase tracking-wide">CUIT</th>
+              <th class="p-4 text-left text-slate-500 font-medium text-xs uppercase tracking-wide">Honorario</th>
+              <th class="p-4 text-left text-slate-500 font-medium text-xs uppercase tracking-wide">Responsable</th>
+              <th class="p-4 text-left text-slate-500 font-medium text-xs uppercase tracking-wide">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-slate-100">
+              <td class="p-4 font-medium">Romero Carlos</td>
+              <td class="p-4 text-slate-500">20-17818363-0</td>
+              <td class="p-4">$45.000</td>
+              <td class="p-4">Valeria Sosa</td>
+              <td class="p-4"><span class="badge badge-green">Activo</span></td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="p-4 font-medium">Bogado Silvina</td>
+              <td class="p-4 text-slate-500">27-31234567-5</td>
+              <td class="p-4">$55.000</td>
+              <td class="p-4">Diego Molina</td>
+              <td class="p-4"><span class="badge badge-green">Activo</span></td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="p-4 font-medium">Ferreyra SA</td>
+              <td class="p-4 text-slate-500">30-71234567-1</td>
+              <td class="p-4">$80.000</td>
+              <td class="p-4">Natalia Ponce</td>
+              <td class="p-4"><span class="badge badge-green">Activo</span></td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="p-4 font-medium">Gutiérrez Tomás</td>
+              <td class="p-4 text-slate-500">20-28765432-1</td>
+              <td class="p-4">$38.000</td>
+              <td class="p-4">Valeria Sosa</td>
+              <td class="p-4"><span class="badge badge-green">Activo</span></td>
+            </tr>
+            <tr>
+              <td class="p-4 font-medium">Lamas & Cía</td>
+              <td class="p-4 text-slate-500">30-65432198-4</td>
+              <td class="p-4">$120.000</td>
+              <td class="p-4">Sofía Irusta</td>
+              <td class="p-4"><span class="badge badge-green">Activo</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- ==================== VENCIMIENTOS ==================== -->
+    <section id="vencimientos" class="page hidden">
+
+      <h2 class="text-2xl font-bold mb-6 text-slate-800">Vencimientos</h2>
+
+      <!-- Mini KPIs -->
+      <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+          <p class="text-xs text-red-500 font-medium uppercase tracking-wide mb-1">Vencidos</p>
+          <p class="text-2xl font-bold text-red-600">4</p>
+        </div>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+          <p class="text-xs text-yellow-700 font-medium uppercase tracking-wide mb-1">Esta semana</p>
+          <p class="text-2xl font-bold text-yellow-600">7</p>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+          <p class="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Próximos 30 días</p>
+          <p class="text-2xl font-bold text-slate-700">18</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Cliente</th>
+              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Trámite</th>
+              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Responsable</th>
+              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Vencimiento</th>
+              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-slate-100 bg-red-50">
+              <td class="p-4 font-medium">Romero Carlos</td>
+              <td class="p-4">IVA Junio</td>
+              <td class="p-4">Valeria Sosa</td>
+              <td class="p-4 text-red-600 font-semibold">18/06/2026</td>
+              <td class="p-4"><span class="badge badge-red">Vencido</span></td>
+            </tr>
+            <tr class="border-b border-slate-100 bg-red-50">
+              <td class="p-4 font-medium">Bogado Silvina</td>
+              <td class="p-4">Municipalidad</td>
+              <td class="p-4">Diego Molina</td>
+              <td class="p-4 text-red-600 font-semibold">12/06/2026</td>
+              <td class="p-4"><span class="badge badge-red">Vencido</span></td>
+            </tr>
+            <tr class="border-b border-slate-100 bg-yellow-50">
+              <td class="p-4 font-medium">Gutiérrez Tomás</td>
+              <td class="p-4">IIBB Mayo</td>
+              <td class="p-4">Valeria Sosa</td>
+              <td class="p-4 text-yellow-700 font-semibold">16/06/2026</td>
+              <td class="p-4"><span class="badge badge-yellow">Mañana</span></td>
+            </tr>
+            <tr class="border-b border-slate-100 bg-yellow-50">
+              <td class="p-4 font-medium">Ferreyra SA</td>
+              <td class="p-4">SICORE</td>
+              <td class="p-4">Natalia Ponce</td>
+              <td class="p-4 text-yellow-700 font-semibold">17/06/2026</td>
+              <td class="p-4"><span class="badge badge-yellow">Esta semana</span></td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="p-4 font-medium">Lamas & Cía</td>
+              <td class="p-4">Ganancias</td>
+              <td class="p-4">Sofía Irusta</td>
+              <td class="p-4">20/06/2026</td>
+              <td class="p-4"><span class="badge badge-blue">En proceso</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAREAS ==================== -->
+    <section id="tareas" class="page hidden">
+
+      <h2 class="text-2xl font-bold mb-6 text-slate-800">Kanban de Tareas</h2>
+
+      <div class="grid grid-cols-4 gap-4">
+
+        <div class="bg-slate-100 p-4 rounded-xl">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-sm text-slate-600">Pendiente</h3>
+            <span class="badge badge-gray">3</span>
+          </div>
+          <div class="bg-white p-3 rounded-lg shadow-sm mb-2 border border-slate-100">
+            <p class="font-medium text-sm">Liquidar IVA Junio</p>
+            <p class="text-slate-400 text-xs mt-1">Romero Carlos · Valeria Sosa</p>
+            <p class="text-red-500 text-xs mt-1">Vence 18/06</p>
+          </div>
+          <div class="bg-white p-3 rounded-lg shadow-sm mb-2 border border-slate-100">
+            <p class="font-medium text-sm">SICORE Junio</p>
+            <p class="text-slate-400 text-xs mt-1">Ferreyra SA · Natalia Ponce</p>
+            <p class="text-yellow-600 text-xs mt-1">Vence 17/06</p>
+          </div>
+          <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-100">
+            <p class="font-medium text-sm">Municipalidad</p>
+            <p class="text-slate-400 text-xs mt-1">Bogado Silv. · Diego Molina</p>
+            <p class="text-red-500 text-xs mt-1">Vencida 12/06</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-100 p-4 rounded-xl">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-sm text-slate-600">En Proceso</h3>
+            <span class="badge badge-blue">4</span>
+          </div>
+          <div class="bg-white p-3 rounded-lg shadow-sm mb-2 border border-blue-100">
+            <p class="font-medium text-sm">DDJJ Ganancias</p>
+            <p class="text-slate-400 text-xs mt-1">Lamas & Cía · Sofía Irusta</p>
+          </div>
+          <div class="bg-white p-3 rounded-lg shadow-sm mb-2 border border-blue-100">
+            <p class="font-medium text-sm">IIBB Mayo</p>
+            <p class="text-slate-400 text-xs mt-1">Gutiérrez Tomás · Valeria Sosa</p>
+          </div>
+          <div class="bg-white p-3 rounded-lg shadow-sm mb-2 border border-blue-100">
+            <p class="font-medium text-sm">Sueldos Mayo</p>
+            <p class="text-slate-400 text-xs mt-1">Romero Carlos · Diego Molina</p>
+          </div>
+          <div class="bg-white p-3 rounded-lg shadow-sm border border-blue-100">
+            <p class="font-medium text-sm">CS Sociales</p>
+            <p class="text-slate-400 text-xs mt-1">Ferreyra SA · Natalia Ponce</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-100 p-4 rounded-xl">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-sm text-slate-600">Revisión</h3>
+            <span class="badge badge-yellow">2</span>
+          </div>
+          <div class="bg-white p-3 rounded-lg shadow-sm mb-2 border border-yellow-100">
+            <p class="font-medium text-sm">Balance Anual</p>
+            <p class="text-slate-400 text-xs mt-1">Ferreyra SA · Natalia Ponce</p>
+          </div>
+          <div class="bg-white p-3 rounded-lg shadow-sm border border-yellow-100">
+            <p class="font-medium text-sm">Rúbricas GCBA</p>
+            <p class="text-slate-400 text-xs mt-1">Bogado Silv. · Diego Molina</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-100 p-4 rounded-xl">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-sm text-slate-600">Finalizado</h3>
+            <span class="badge badge-green">5</span>
+          </div>
+          <div class="bg-white p-3 rounded-lg shadow-sm mb-2 border border-green-100">
+            <p class="font-medium text-sm">IVA Mayo</p>
+            <p class="text-slate-400 text-xs mt-1">Romero Carlos · Valeria Sosa</p>
+          </div>
+          <div class="bg-white p-3 rounded-lg shadow-sm border border-green-100">
+            <p class="font-medium text-sm">Sueldos Abril</p>
+            <p class="text-slate-400 text-xs mt-1">Lamas & Cía · Sofía Irusta</p>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==================== HONORARIOS ==================== -->
+    <section id="honorarios" class="page hidden">
+
+      <h2 class="text-2xl font-bold mb-6 text-slate-800">Honorarios</h2>
+
+      <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+          <p class="text-slate-400 text-xs uppercase tracking-wide mb-1">Facturado</p>
+          <span class="text-2xl font-bold text-slate-800">$1.250.000</span>
+        </div>
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+          <p class="text-slate-400 text-xs uppercase tracking-wide mb-1">Cobrado</p>
+          <span class="text-2xl font-bold text-green-600">$920.000</span>
+        </div>
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-orange-100">
+          <p class="text-slate-400 text-xs uppercase tracking-wide mb-1">Pendiente</p>
+          <span class="text-2xl font-bold text-orange-500">$330.000</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== EQUIPO ==================== -->
+    <section id="equipo" class="page hidden">
+
+      <h2 class="text-2xl font-bold mb-6 text-slate-800">Equipo</h2>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Colaborador</th>
+              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Clientes</th>
+              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Tareas abiertas</th>
+              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Vencimientos sem.</th>
+              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Cumplimiento</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-slate-100">
+              <td class="p-4 font-medium">Valeria Sosa</td>
+              <td class="p-4">15</td>
+              <td class="p-4 text-orange-600 font-semibold">7</td>
+              <td class="p-4 text-red-600 font-semibold">3</td>
+              <td class="p-4">
+                <div class="flex items-center gap-2">
+                  <div class="progress-bar-wrap w-24"><div class="progress-bar-fill bg-blue-500" style="width:74%"></div></div>
+                  <span class="text-xs font-semibold">74%</span>
+                </div>
+              </td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="p-4 font-medium">Diego Molina</td>
+              <td class="p-4">12</td>
+              <td class="p-4 text-orange-600 font-semibold">3</td>
+              <td class="p-4 text-yellow-600 font-semibold">2</td>
+              <td class="p-4">
+                <div class="flex items-center gap-2">
+                  <div class="progress-bar-wrap w-24"><div class="progress-bar-fill bg-emerald-500" style="width:88%"></div></div>
+                  <span class="text-xs font-semibold">88%</span>
+                </div>
+              </td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="p-4 font-medium">Natalia Ponce</td>
+              <td class="p-4">10</td>
+              <td class="p-4 text-orange-600 font-semibold">5</td>
+              <td class="p-4 text-red-600 font-semibold">4</td>
+              <td class="p-4">
+                <div class="flex items-center gap-2">
+                  <div class="progress-bar-wrap w-24"><div class="progress-bar-fill bg-orange-400" style="width:61%"></div></div>
+                  <span class="text-xs font-semibold text-orange-600">61%</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="p-4 font-medium">Sofía Irusta</td>
+              <td class="p-4">10</td>
+              <td class="p-4 text-orange-600 font-semibold">4</td>
+              <td class="p-4 text-yellow-600 font-semibold">1</td>
+              <td class="p-4">
+                <div class="flex items-center gap-2">
+                  <div class="progress-bar-wrap w-24"><div class="progress-bar-fill bg-blue-500" style="width:92%"></div></div>
+                  <span class="text-xs font-semibold">92%</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- ==================== CRM ==================== -->
+    <section id="crm" class="page hidden">
+
+      <h2 class="text-2xl font-bold mb-6 text-slate-800">CRM y Comunicaciones</h2>
+
+      <div class="space-y-3">
+        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+          📞 <strong>Romero Carlos</strong> – Solicitud documentación IVA <span class="text-slate-400 text-xs ml-2">13/06 · Valeria Sosa</span>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+          💬 <strong>Bogado Silvina</strong> – Cambio domicilio fiscal <span class="text-slate-400 text-xs ml-2">12/06 · Diego Molina</span>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+          📱 <strong>Ferreyra SA</strong> – Consulta SICORE <span class="text-slate-400 text-xs ml-2">11/06 · Natalia Ponce</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== DOCUMENTOS ==================== -->
+    <section id="documentos" class="page hidden">
+
+      <h2 class="text-2xl font-bold mb-6 text-slate-800">Gestión Documental</h2>
+
+      <div class="grid grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:border-blue-300 cursor-pointer transition-all">
+          <div class="text-2xl mb-2">📁</div>
+          <p class="font-semibold text-slate-700">IVA</p>
+          <p class="text-slate-400 text-xs mt-1">23 archivos</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:border-blue-300 cursor-pointer transition-all">
+          <div class="text-2xl mb-2">📁</div>
+          <p class="font-semibold text-slate-700">Ganancias</p>
+          <p class="text-slate-400 text-xs mt-1">18 archivos</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:border-blue-300 cursor-pointer transition-all">
+          <div class="text-2xl mb-2">📁</div>
+          <p class="font-semibold text-slate-700">IIBB</p>
+          <p class="text-slate-400 text-xs mt-1">31 archivos</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:border-blue-300 cursor-pointer transition-all">
+          <div class="text-2xl mb-2">📁</div>
+          <p class="font-semibold text-slate-700">Balances</p>
+          <p class="text-slate-400 text-xs mt-1">12 archivos</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:border-blue-300 cursor-pointer transition-all">
+          <div class="text-2xl mb-2">📁</div>
+          <p class="font-semibold text-slate-700">CS Sociales</p>
+          <p class="text-slate-400 text-xs mt-1">9 archivos</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:border-blue-300 cursor-pointer transition-all">
+          <div class="text-2xl mb-2">📁</div>
+          <p class="font-semibold text-slate-700">Municipalidad</p>
+          <p class="text-slate-400 text-xs mt-1">7 archivos</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:border-blue-300 cursor-pointer transition-all">
+          <div class="text-2xl mb-2">📁</div>
+          <p class="font-semibold text-slate-700">Contratos</p>
+          <p class="text-slate-400 text-xs mt-1">15 archivos</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:border-blue-300 cursor-pointer transition-all">
+          <div class="text-2xl mb-2">📁</div>
+          <p class="font-semibold text-slate-700">Sueldos</p>
+          <p class="text-slate-400 text-xs mt-1">44 archivos</p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+<!-- ==================== MODVS DETALLE ==================== -->
+<div id="modal-overlay" class="modal-overlay" onclick="cerrarModal(event)">
+  <div class="bg-white rounded-2xl shadow-xl w-[540px] max-w-full mx-4 p-6" onclick="event.stopPropagation()">
+
+    <div class="flex items-start justify-between mb-4">
+      <div>
+        <h3 id="modal-titulo" class="text-lg font-bold text-slate-800"></h3>
+        <p id="modal-cliente" class="text-slate-400 text-sm"></p>
+      </div>
+      <button onclick="cerrarModal()" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+    </div>
+
+    <div class="space-y-3 mb-5">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-slate-50 rounded-lg p-3">
+          <p class="text-xs text-slate-400 mb-1">Responsable</p>
+          <p id="modal-responsable" class="font-semibold text-sm text-slate-700"></p>
+        </div>
+        <div class="bg-slate-50 rounded-lg p-3">
+          <p class="text-xs text-slate-400 mb-1">Estado actual</p>
+          <p id="modal-estado" class="font-semibold text-sm"></p>
+        </div>
+        <div class="bg-slate-50 rounded-lg p-3">
+          <p class="text-xs text-slate-400 mb-1">Vencimiento</p>
+          <p id="modal-vencimiento" class="font-semibold text-sm text-slate-700"></p>
+        </div>
+        <div class="bg-slate-50 rounded-lg p-3">
+          <p class="text-xs text-slate-400 mb-1">Última actualización</p>
+          <p id="modal-actualizacion" class="font-semibold text-sm text-slate-700"></p>
+        </div>
+      </div>
+
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+        <p class="text-xs text-amber-700 font-medium mb-1">💬 Comentario del colaborador</p>
+        <p id="modal-comentario" class="text-sm text-slate-700"></p>
+      </div>
+
+      <div id="modal-bloqueo-wrap" class="bg-red-50 border border-red-200 rounded-lg p-3 hidden">
+        <p class="text-xs text-red-600 font-medium mb-1">🚧 Bloqueo</p>
+        <p id="modal-bloqueo" class="text-sm text-slate-700"></p>
+      </div>
+
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <p class="text-xs text-blue-700 font-medium mb-1">▶ Próximo paso</p>
+        <p id="modal-proximo" class="text-sm text-slate-700"></p>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2">
+      <button onclick="cerrarModal()" class="px-4 py-2 text-sm text-slate-500 hover:bg-slate-100 rounded-lg">Cerrar</button>
+      <button class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg font-medium">Enviar recordatorio</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+// ===== DATA =====
+var seguimientoData = [
+  {
+    cliente: "Romero Carlos",
+    responsable: "Valeria Sosa",
+    tramite: "IVA",
+    descripcion: "Liquidación IVA Junio",
+    estado: "Pendiente",
+    vencimiento: "18/06/2026",
+    actualizacion: "Hace 3 días",
+    comentario: "Esperando documentación de ventas del cliente.",
+    bloqueo: "Falta factura de compra N° 3421.",
+    proximo: "Contactar a Carlos para solicitar comprobantes pendientes."
+  },
+  {
+    cliente: "Bogado Silvina",
+    responsable: "Diego Molina",
+    tramite: "Municipalidad",
+    descripcion: "Habilitación municipal Junio",
+    estado: "Bloqueado",
+    vencimiento: "12/06/2026",
+    actualizacion: "Hace 5 días",
+    comentario: "La municipalidad rechazó el formulario por error de domicilio.",
+    bloqueo: "Cambio de domicilio fiscal sin confirmar por el cliente.",
+    proximo: "Esperar confirmación del nuevo domicilio. Reiniciar trámite."
+  },
+  {
+    cliente: "Gutiérrez Tomás",
+    responsable: "Valeria Sosa",
+    tramite: "IIBB",
+    descripcion: "IIBB Mayo",
+    estado: "En Proceso",
+    vencimiento: "16/06/2026",
+    actualizacion: "Hoy 14:30",
+    comentario: "Cargando declaración en AGIP. 80% completado.",
+    bloqueo: null,
+    proximo: "Finalizar carga y presentar antes de las 18hs de mañana."
+  },
+  {
+    cliente: "Ferreyra SA",
+    responsable: "Natalia Ponce",
+    tramite: "SICORE",
+    descripcion: "SICORE Junio",
+    estado: "Pendiente",
+    vencimiento: "17/06/2026",
+    actualizacion: "Ayer",
+    comentario: "Datos de retenciones aún sin procesar.",
+    bloqueo: null,
+    proximo: "Revisar y cargar retenciones del mes."
+  },
+  {
+    cliente: "Ferreyra SA",
+    responsable: "Natalia Ponce",
+    tramite: "CS Sociales",
+    descripcion: "CS Sociales Junio",
+    estado: "En Proceso",
+    vencimiento: "20/06/2026",
+    actualizacion: "Hoy 10:15",
+    comentario: "Calculando aportes de 3 empleados. Falta uno.",
+    bloqueo: null,
+    proximo: "Cargar aporte restante y presentar."
+  },
+  {
+    cliente: "Lamas & Cía",
+    responsable: "Sofía Irusta",
+    tramite: "Ganancias",
+    descripcion: "DDJJ Ganancias Anual",
+    estado: "Revisión",
+    vencimiento: "20/06/2026",
+    actualizacion: "Hoy 09:00",
+    comentario: "Declaración lista para revisión de la titular.",
+    bloqueo: null,
+    proximo: "Enviar borrador a la titular para aprobación."
+  },
+  {
+    cliente: "Romero Carlos",
+    responsable: "Diego Molina",
+    tramite: "Sueldos",
+    descripcion: "Sueldos Mayo",
+    estado: "Finalizado",
+    vencimiento: "10/06/2026",
+    actualizacion: "10/06 15:45",
+    comentario: "Presentado y acreditado en término.",
+    bloqueo: null,
+    proximo: "—"
+  },
+  {
+    cliente: "Bogado Silvina",
+    responsable: "Diego Molina",
+    tramite: "Ganancias",
+    descripcion: "Anticipo Ganancias",
+    estado: "Pendiente",
+    vencimiento: "25/06/2026",
+    actualizacion: "Hace 2 días",
+    comentario: "Aún no iniciado. Prioridad media.",
+    bloqueo: null,
+    proximo: "Iniciar cálculo de anticipo esta semana."
+  }
+];
+
+var filasFiltradas = seguimientoData.slice();
+
+// ===== RENDER SEGUIMIENTO =====
+function estadoBadge(estado) {
+  var mapa = {
+    "Pendiente":   "badge-gray",
+    "En Proceso":  "badge-blue",
+    "Revisión":    "badge-yellow",
+    "Bloqueado":   "badge-red",
+    "Finalizado":  "badge-green"
+  };
+  return '<span class="badge ' + (mapa[estado] || "badge-gray") + '">' + estado + '</span>';
+}
+
+function renderSeguimiento(data) {
+  var tbody = document.getElementById('seguimiento-body');
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center p-8 text-slate-400">No hay trámites que coincidan con los filtros.</td></tr>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < data.length; i++) {
+    var row = data[i];
+    var vencClase = '';
+    if (row.estado === 'Vencido' || row.vencimiento === '12/06/2026' || row.vencimiento === '18/06/2026') vencClase = 'text-red-600 font-semibold';
+    else if (row.vencimiento === '16/06/2026' || row.vencimiento === '17/06/2026') vencClase = 'text-yellow-600 font-semibold';
+
+    html += '<tr class="border-b border-slate-100 cursor-pointer hover:bg-slate-50" data-idx="' + i + '" onclick="abrirModal(' + i + ')">';
+    html += '<td class="px-4 py-3 font-medium text-slate-700">' + row.cliente + '</td>';
+    html += '<td class="px-4 py-3 text-slate-500">' + row.responsable + '</td>';
+    html += '<td class="px-4 py-3">' + row.descripcion + '</td>';
+    html += '<td class="px-4 py-3">' + estadoBadge(row.estado) + '</td>';
+    html += '<td class="px-4 py-3 ' + vencClase + '">' + row.vencimiento + '</td>';
+    html += '<td class="px-4 py-3 text-slate-400 text-xs">' + row.actualizacion + '</td>';
+    html += '<td class="px-4 py-3"><button class="text-blue-500 hover:underline text-xs">Ver detalle</button></td>';
+    html += '</tr>';
+  }
+  tbody.innerHTML = html;
+}
+
+// ===== MODVS =====
+var modalIdx = null;
+
+function abrirModal(idx) {
+  var row = filasFiltradas[idx];
+  document.getElementById('modal-titulo').textContent = row.descripcion;
+  document.getElementById('modal-cliente').textContent = row.cliente;
+  document.getElementById('modal-responsable').textContent = row.responsable;
+  document.getElementById('modal-estado').innerHTML = estadoBadge(row.estado);
+  document.getElementById('modal-vencimiento').textContent = row.vencimiento;
+  document.getElementById('modal-actualizacion').textContent = row.actualizacion;
+  document.getElementById('modal-comentario').textContent = row.comentario;
+  document.getElementById('modal-proximo').textContent = row.proximo;
+
+  var bloqueoWrap = document.getElementById('modal-bloqueo-wrap');
+  if (row.bloqueo) {
+    bloqueoWrap.classList.remove('hidden');
+    document.getElementById('modal-bloqueo').textContent = row.bloqueo;
+  } else {
+    bloqueoWrap.classList.add('hidden');
+  }
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function cerrarModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+
+// ===== FILTROS =====
+function filtrarSeguimiento() {
+  var resp   = document.getElementById('filtro-responsable').value;
+  var estado = document.getElementById('filtro-estado').value;
+  var tram   = document.getElementById('filtro-tramite').value;
+
+  filasFiltradas = seguimientoData.filter(function(row) {
+    return (!resp   || row.responsable === resp) &&
+           (!estado || row.estado === estado) &&
+           (!tram   || row.tramite === tram);
+  });
+
+  renderSeguimiento(filasFiltradas);
+}
+
+function limpiarFiltros() {
+  document.getElementById('filtro-responsable').value = '';
+  document.getElementById('filtro-estado').value = '';
+  document.getElementById('filtro-tramite').value = '';
+  filasFiltradas = seguimientoData.slice();
+  renderSeguimiento(filasFiltradas);
+}
+
+// ===== NAVEGACIÓN =====
+function showPage(pageId, btn) {
+  document.querySelectorAll('.page').forEach(function(p) {
+    p.classList.add('hidden');
+  });
+  document.getElementById(pageId).classList.remove('hidden');
+
+  document.querySelectorAll('.menu-item').forEach(function(b) {
+    b.classList.remove('active-menu');
+  });
+
+  var titles = {
+    dashboard:    'Dashboard',
+    seguimiento:  'Seguimiento Operativo',
+    clientes:     'Clientes',
+    vencimientos: 'Vencimientos',
+    tareas:       'Kanban de Tareas',
+    honorarios:   'Honorarios',
+    equipo:       'Equipo',
+    crm:          'CRM y Comunicaciones',
+    documentos:   'Gestión Documental'
+  };
+  document.getElementById('page-title').textContent = titles[pageId] || pageId;
+
+  if (btn) {
+    btn.classList.add('active-menu');
+  }
+}
+
+function showPageByName(pageId) {
+  var buttons = document.querySelectorAll('.menu-item');
+  var target = null;
+  buttons.forEach(function(b) {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').indexOf("'" + pageId + "'") !== -1) {
+      target = b;
+    }
+  });
+  showPage(pageId, target);
+}
+
+// ===== INIT =====
+renderSeguimiento(seguimientoData);
+
+new Chart(document.getElementById('facturacionChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Ene','Feb','Mar','Abr','May','Jun'],
+    datasets: [
+      {
+        label: 'Facturado',
+        data: [850,920,1100,980,1200,1250],
+        backgroundColor: '#3b82f6'
+      },
+      {
+        label: 'Cobrado',
+        data: [780,880,1000,900,1080,920],
+        backgroundColor: '#22c55e'
+      }
+    ]
+  },
+  options: {
+    plugins: { legend: { position: 'bottom' } },
+    scales: { y: { beginAtZero: true } }
+  }
+});
+
+</script>
+
+</body>
+</html>
