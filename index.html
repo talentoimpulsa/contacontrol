@@ -88,6 +88,10 @@
         👁 Seguimiento Operativo
       </button>
 
+      <button onclick="showPage('kanban-individual',this)" class="menu-item w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 text-sm font-semibold">
+        🔍 Trámites por Cliente
+      </button>
+
       <div class="pt-3 pb-1 px-3 text-slate-500 text-xs uppercase tracking-widest">Gestión</div>
 
       <button onclick="showPage('clientes',this)" class="menu-item w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 text-sm">
@@ -104,10 +108,6 @@
 
       <button onclick="showPage('honorarios',this)" class="menu-item w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 text-sm">
         💰 Honorarios
-      </button>
-
-      <button onclick="showPage('equipo',this)" class="menu-item w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 text-sm">
-        👥 Equipo
       </button>
 
       <div class="pt-3 pb-1 px-3 text-slate-500 text-xs uppercase tracking-widest">Otros</div>
@@ -225,7 +225,7 @@
         <div class="grid grid-cols-4 gap-4">
 
           <!-- Ana -->
-          <div class="border border-slate-200 rounded-xl p-4">
+          <div class="border border-slate-200 rounded-xl p-4 cursor-pointer hover:border-blue-300 hover:shadow-md transition-all" onclick="verSeguimientoPorColaborador('Valeria Sosa')">
             <div class="flex items-center gap-2 mb-3">
               <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">VS</div>
               <div>
@@ -245,7 +245,7 @@
           </div>
 
           <!-- Juan -->
-          <div class="border border-slate-200 rounded-xl p-4">
+          <div class="border border-slate-200 rounded-xl p-4 cursor-pointer hover:border-blue-300 hover:shadow-md transition-all" onclick="verSeguimientoPorColaborador('Diego Molina')">
             <div class="flex items-center gap-2 mb-3">
               <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm">DM</div>
               <div>
@@ -265,7 +265,7 @@
           </div>
 
           <!-- Natdia -->
-          <div class="border border-slate-200 rounded-xl p-4">
+          <div class="border border-slate-200 rounded-xl p-4 cursor-pointer hover:border-blue-300 hover:shadow-md transition-all" onclick="verSeguimientoPorColaborador('Natalia Ponce')">
             <div class="flex items-center gap-2 mb-3">
               <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold text-sm">NP</div>
               <div>
@@ -285,7 +285,7 @@
           </div>
 
           <!-- Sofíala -->
-          <div class="border border-slate-200 rounded-xl p-4">
+          <div class="border border-slate-200 rounded-xl p-4 cursor-pointer hover:border-blue-300 hover:shadow-md transition-all" onclick="verSeguimientoPorColaborador('Sofía Irusta')">
             <div class="flex items-center gap-2 mb-3">
               <div class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-sm">SI</div>
               <div>
@@ -314,8 +314,7 @@
 
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h2 class="text-2xl font-bold text-slate-800">Seguimiento Operativo</h2>
-          <p class="text-slate-400 text-sm">Visibilidad en tiempo real de cada trámite por colaborador</p>
+          <p class="text-slate-500 text-sm">Visibilidad en tiempo real de cada trámite por colaborador</p>
         </div>
       </div>
 
@@ -354,6 +353,84 @@
         <button onclick="limpiarFiltros()" class="text-blue-600 text-sm hover:underline ml-auto">Limpiar filtros</button>
       </div>
 
+      <!-- Botón ver cumplimiento del equipo -->
+      <div class="mb-5">
+        <button id="btn-toggle-equipo" onclick="toggleCumplimientoEquipo()" class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm hover:bg-slate-50 flex items-center gap-2">
+          👥 Ver cumplimiento del equipo
+          <span id="icono-toggle-equipo">▾</span>
+        </button>
+
+        <!-- Tabla de cumplimiento del equipo (oculta por defecto) -->
+        <div id="tabla-cumplimiento-equipo" class="hidden mt-3 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Colaborador</th>
+                <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Clientes</th>
+                <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Tareas abiertas</th>
+                <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Vencimientos sem.</th>
+                <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Cumplimiento</th>
+                <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-slate-100">
+                <td class="p-4 font-medium">Valeria Sosa</td>
+                <td class="p-4">15</td>
+                <td class="p-4 text-orange-600 font-semibold">7</td>
+                <td class="p-4 text-red-600 font-semibold">3</td>
+                <td class="p-4">
+                  <div class="flex items-center gap-2">
+                    <div class="progress-bar-wrap w-24"><div class="progress-bar-fill bg-blue-500" style="width:74%"></div></div>
+                    <span class="text-xs font-semibold">74%</span>
+                  </div>
+                </td>
+                <td class="p-4"><button onclick="verSeguimientoPorColaborador('Valeria Sosa')" class="text-blue-600 hover:underline text-xs font-medium">Ver trámites</button></td>
+              </tr>
+              <tr class="border-b border-slate-100">
+                <td class="p-4 font-medium">Diego Molina</td>
+                <td class="p-4">12</td>
+                <td class="p-4 text-orange-600 font-semibold">3</td>
+                <td class="p-4 text-yellow-600 font-semibold">2</td>
+                <td class="p-4">
+                  <div class="flex items-center gap-2">
+                    <div class="progress-bar-wrap w-24"><div class="progress-bar-fill bg-emerald-500" style="width:88%"></div></div>
+                    <span class="text-xs font-semibold">88%</span>
+                  </div>
+                </td>
+                <td class="p-4"><button onclick="verSeguimientoPorColaborador('Diego Molina')" class="text-blue-600 hover:underline text-xs font-medium">Ver trámites</button></td>
+              </tr>
+              <tr class="border-b border-slate-100">
+                <td class="p-4 font-medium">Natalia Ponce</td>
+                <td class="p-4">10</td>
+                <td class="p-4 text-orange-600 font-semibold">5</td>
+                <td class="p-4 text-red-600 font-semibold">4</td>
+                <td class="p-4">
+                  <div class="flex items-center gap-2">
+                    <div class="progress-bar-wrap w-24"><div class="progress-bar-fill bg-orange-400" style="width:61%"></div></div>
+                    <span class="text-xs font-semibold text-orange-600">61%</span>
+                  </div>
+                </td>
+                <td class="p-4"><button onclick="verSeguimientoPorColaborador('Natalia Ponce')" class="text-blue-600 hover:underline text-xs font-medium">Ver trámites</button></td>
+              </tr>
+              <tr>
+                <td class="p-4 font-medium">Sofía Irusta</td>
+                <td class="p-4">10</td>
+                <td class="p-4 text-orange-600 font-semibold">4</td>
+                <td class="p-4 text-yellow-600 font-semibold">1</td>
+                <td class="p-4">
+                  <div class="flex items-center gap-2">
+                    <div class="progress-bar-wrap w-24"><div class="progress-bar-fill bg-blue-500" style="width:92%"></div></div>
+                    <span class="text-xs font-semibold">92%</span>
+                  </div>
+                </td>
+                <td class="p-4"><button onclick="verSeguimientoPorColaborador('Sofía Irusta')" class="text-blue-600 hover:underline text-xs font-medium">Ver trámites</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Tabla principal -->
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <table class="w-full text-sm" id="tabla-seguimiento">
@@ -375,11 +452,60 @@
 
     </section>
 
+    <!-- ==================== TRÁMITES POR CLIENTE ==================== -->
+    <section id="kanban-individual" class="page hidden">
+
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <p class="text-slate-500 text-sm">Buscá un cliente y vas a ver todos sus trámites — ideal cuando llama preguntando por su trámite y necesitás saber al instante en qué está y quién lo tiene</p>
+        </div>
+      </div>
+
+      <!-- Buscador de cliente -->
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 mb-6">
+        <div class="relative">
+          <input id="buscador-cliente" type="text" placeholder="Buscar cliente por nombre..." autocomplete="off"
+            oninput="filtrarSugerenciasCliente()" onfocus="filtrarSugerenciasCliente()"
+            class="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-400">
+          <div id="sugerencias-cliente" class="absolute z-10 bg-white border border-slate-200 rounded-lg shadow-lg w-full mt-1 hidden max-h-64 overflow-y-auto"></div>
+        </div>
+
+        <!-- Chips de acceso rápido -->
+        <div class="flex flex-wrap gap-2 mt-3" id="chips-clientes"></div>
+      </div>
+
+      <!-- Sin cliente seleccionado -->
+      <div id="sin-cliente-seleccionado" class="bg-white rounded-xl p-10 text-center border border-slate-100">
+        <p class="text-slate-400">Buscá o seleccioná un cliente arriba para ver sus trámites.</p>
+      </div>
+
+      <!-- Detalle del cliente seleccionado -->
+      <div id="detalle-cliente-wrap" class="hidden">
+
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100 mb-5 flex items-center justify-between">
+          <div>
+            <h3 id="cliente-nombre" class="text-xl font-bold text-slate-800"></h3>
+            <p id="cliente-resumen" class="text-slate-400 text-sm mt-1"></p>
+          </div>
+          <div id="cliente-alerta" class="hidden bg-red-50 border border-red-200 text-red-600 text-sm font-medium px-4 py-2 rounded-lg">
+            ⚠️ Tiene trámites vencidos o bloqueados
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="grid grid-cols-4 gap-4 mb-5" id="cliente-kpis"></div>
+
+        <!-- Kanban -->
+        <div class="grid grid-cols-4 gap-4" id="kanban-cliente-board"></div>
+
+      </div>
+
+    </section>
+
     <!-- ==================== CLIENTES ==================== -->
     <section id="clientes" class="page hidden">
 
       <div class="flex justify-between mb-6">
-        <h2 class="text-2xl font-bold text-slate-800">Clientes</h2>
         <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ Nuevo Cliente</button>
       </div>
 
@@ -438,8 +564,6 @@
 
     <!-- ==================== VENCIMIENTOS ==================== -->
     <section id="vencimientos" class="page hidden">
-
-      <h2 class="text-2xl font-bold mb-6 text-slate-800">Vencimientos</h2>
 
       <!-- Mini KPIs -->
       <div class="grid grid-cols-3 gap-4 mb-6">
@@ -512,8 +636,6 @@
 
     <!-- ==================== TAREAS ==================== -->
     <section id="tareas" class="page hidden">
-
-      <h2 class="text-2xl font-bold mb-6 text-slate-800">Kanban de Tareas</h2>
 
       <div class="grid grid-cols-4 gap-4">
 
@@ -599,8 +721,6 @@
     <!-- ==================== HONORARIOS ==================== -->
     <section id="honorarios" class="page hidden">
 
-      <h2 class="text-2xl font-bold mb-6 text-slate-800">Honorarios</h2>
-
       <div class="grid grid-cols-3 gap-4 mb-6">
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
           <p class="text-slate-400 text-xs uppercase tracking-wide mb-1">Facturado</p>
@@ -618,81 +738,8 @@
 
     </section>
 
-    <!-- ==================== EQUIPO ==================== -->
-    <section id="equipo" class="page hidden">
-
-      <h2 class="text-2xl font-bold mb-6 text-slate-800">Equipo</h2>
-
-      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <table class="w-full text-sm">
-          <thead class="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Colaborador</th>
-              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Clientes</th>
-              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Tareas abiertas</th>
-              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Vencimientos sem.</th>
-              <th class="text-left p-4 text-slate-500 font-medium text-xs uppercase tracking-wide">Cumplimiento</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="border-b border-slate-100">
-              <td class="p-4 font-medium">Valeria Sosa</td>
-              <td class="p-4">15</td>
-              <td class="p-4 text-orange-600 font-semibold">7</td>
-              <td class="p-4 text-red-600 font-semibold">3</td>
-              <td class="p-4">
-                <div class="flex items-center gap-2">
-                  <div class="progress-bar-wrap w-24"><div class="progress-bar-fill bg-blue-500" style="width:74%"></div></div>
-                  <span class="text-xs font-semibold">74%</span>
-                </div>
-              </td>
-            </tr>
-            <tr class="border-b border-slate-100">
-              <td class="p-4 font-medium">Diego Molina</td>
-              <td class="p-4">12</td>
-              <td class="p-4 text-orange-600 font-semibold">3</td>
-              <td class="p-4 text-yellow-600 font-semibold">2</td>
-              <td class="p-4">
-                <div class="flex items-center gap-2">
-                  <div class="progress-bar-wrap w-24"><div class="progress-bar-fill bg-emerald-500" style="width:88%"></div></div>
-                  <span class="text-xs font-semibold">88%</span>
-                </div>
-              </td>
-            </tr>
-            <tr class="border-b border-slate-100">
-              <td class="p-4 font-medium">Natalia Ponce</td>
-              <td class="p-4">10</td>
-              <td class="p-4 text-orange-600 font-semibold">5</td>
-              <td class="p-4 text-red-600 font-semibold">4</td>
-              <td class="p-4">
-                <div class="flex items-center gap-2">
-                  <div class="progress-bar-wrap w-24"><div class="progress-bar-fill bg-orange-400" style="width:61%"></div></div>
-                  <span class="text-xs font-semibold text-orange-600">61%</span>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td class="p-4 font-medium">Sofía Irusta</td>
-              <td class="p-4">10</td>
-              <td class="p-4 text-orange-600 font-semibold">4</td>
-              <td class="p-4 text-yellow-600 font-semibold">1</td>
-              <td class="p-4">
-                <div class="flex items-center gap-2">
-                  <div class="progress-bar-wrap w-24"><div class="progress-bar-fill bg-blue-500" style="width:92%"></div></div>
-                  <span class="text-xs font-semibold">92%</span>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-    </section>
-
     <!-- ==================== CRM ==================== -->
     <section id="crm" class="page hidden">
-
-      <h2 class="text-2xl font-bold mb-6 text-slate-800">CRM y Comunicaciones</h2>
 
       <div class="space-y-3">
         <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
@@ -710,8 +757,6 @@
 
     <!-- ==================== DOCUMENTOS ==================== -->
     <section id="documentos" class="page hidden">
-
-      <h2 class="text-2xl font-bold mb-6 text-slate-800">Gestión Documental</h2>
 
       <div class="grid grid-cols-4 gap-4">
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:border-blue-300 cursor-pointer transition-all">
@@ -811,6 +856,7 @@
 
     <div class="flex justify-end gap-2">
       <button onclick="cerrarModal()" class="px-4 py-2 text-sm text-slate-500 hover:bg-slate-100 rounded-lg">Cerrar</button>
+      <button id="modal-ver-kanban" class="px-4 py-2 text-sm bg-slate-700 text-white rounded-lg font-medium">Ver todos los trámites de este cliente</button>
       <button class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg font-medium">Enviar recordatorio</button>
     </div>
 
@@ -916,10 +962,310 @@ var seguimientoData = [
     comentario: "Aún no iniciado. Prioridad media.",
     bloqueo: null,
     proximo: "Iniciar cálculo de anticipo esta semana."
+  },
+  {
+    cliente: "Acevedo María",
+    responsable: "Valeria Sosa",
+    tramite: "IVA",
+    descripcion: "Liquidación IVA Mayo",
+    estado: "Finalizado",
+    vencimiento: "10/06/2026",
+    actualizacion: "10/06 11:20",
+    comentario: "Presentado en término sin observaciones.",
+    bloqueo: null,
+    proximo: "—"
+  },
+  {
+    cliente: "Acevedo María",
+    responsable: "Valeria Sosa",
+    tramite: "Monotributo",
+    descripcion: "Recategorización Monotributo",
+    estado: "En Proceso",
+    vencimiento: "22/06/2026",
+    actualizacion: "Hoy 11:50",
+    comentario: "Revisando facturación de los últimos 12 meses.",
+    bloqueo: null,
+    proximo: "Confirmar categoría y notificar al cliente."
+  },
+  {
+    cliente: "Domínguez Patricia",
+    responsable: "Diego Molina",
+    tramite: "IIBB",
+    descripcion: "IIBB Junio",
+    estado: "Pendiente",
+    vencimiento: "23/06/2026",
+    actualizacion: "Hace 1 día",
+    comentario: "A la espera de comprobantes de ventas del mes.",
+    bloqueo: null,
+    proximo: "Reclamar comprobantes a la clienta."
+  },
+  {
+    cliente: "Domínguez Patricia",
+    responsable: "Diego Molina",
+    tramite: "Sueldos",
+    descripcion: "Sueldos Junio",
+    estado: "Revisión",
+    vencimiento: "28/06/2026",
+    actualizacion: "Hoy 08:40",
+    comentario: "Liquidación lista, pendiente de aprobación final.",
+    bloqueo: null,
+    proximo: "Enviar recibo a la clienta para conformidad."
+  },
+  {
+    cliente: "Suárez Construcciones",
+    responsable: "Natalia Ponce",
+    tramite: "IVA",
+    descripcion: "Liquidación IVA Junio",
+    estado: "Bloqueado",
+    vencimiento: "19/06/2026",
+    actualizacion: "Hace 4 días",
+    comentario: "No se puede cerrar la liquidación por facturas duplicadas en el sistema.",
+    bloqueo: "Dos facturas de compra cargadas dos veces. Se necesita corrección contable previa.",
+    proximo: "Depurar el libro de compras antes de continuar."
+  },
+  {
+    cliente: "Suárez Construcciones",
+    responsable: "Natalia Ponce",
+    tramite: "Cargas Sociales",
+    descripcion: "Cargas Sociales Junio",
+    estado: "Pendiente",
+    vencimiento: "27/06/2026",
+    actualizacion: "Hace 2 días",
+    comentario: "A la espera del padrón actualizado de empleados.",
+    bloqueo: null,
+    proximo: "Solicitar nómina actualizada a RRHH del cliente."
+  },
+  {
+    cliente: "Lamas & Cía",
+    responsable: "Sofía Irusta",
+    tramite: "Municipalidad",
+    descripcion: "Tasa de Seguridad e Higiene",
+    estado: "Finalizado",
+    vencimiento: "08/06/2026",
+    actualizacion: "08/06 16:10",
+    comentario: "Pagado y archivado el comprobante.",
+    bloqueo: null,
+    proximo: "—"
+  },
+  {
+    cliente: "Lamas & Cía",
+    responsable: "Sofía Irusta",
+    tramite: "IVA",
+    descripcion: "Liquidación IVA Junio",
+    estado: "En Proceso",
+    vencimiento: "21/06/2026",
+    actualizacion: "Hoy 12:05",
+    comentario: "Cargando comprobantes de compra del mes, 60% avanzado.",
+    bloqueo: null,
+    proximo: "Terminar carga y conciliar con extracto bancario."
   }
 ];
 
 var filasFiltradas = seguimientoData.slice();
+
+var colaboradores = ["Valeria Sosa", "Diego Molina", "Natalia Ponce", "Sofía Irusta"];
+
+// ===== TRÁMITES POR CLIENTE =====
+var clienteActivo = null;
+
+function listaClientesUnicos() {
+  var vistos = {};
+  var lista = [];
+  seguimientoData.forEach(function(row) {
+    if (!vistos[row.cliente]) {
+      vistos[row.cliente] = true;
+      lista.push(row.cliente);
+    }
+  });
+  return lista.sort();
+}
+
+function renderChipsClientes() {
+  var clientes = listaClientesUnicos();
+  var wrap = document.getElementById('chips-clientes');
+  var html = '';
+  for (var i = 0; i < clientes.length; i++) {
+    var nombre = clientes[i];
+    var tieneAlerta = seguimientoData.some(function(r) { return r.cliente === nombre && (r.estado === 'Bloqueado'); });
+    html += '<button onclick="seleccionarCliente(\'' + nombre + '\')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">' +
+      nombre + (tieneAlerta ? ' 🔴' : '') + '</button>';
+  }
+  wrap.innerHTML = html;
+}
+
+function filtrarSugerenciasCliente() {
+  var valor = document.getElementById('buscador-cliente').value.toLowerCase();
+  var clientes = listaClientesUnicos().filter(function(c) { return c.toLowerCase().indexOf(valor) !== -1; });
+  var sugerencias = document.getElementById('sugerencias-cliente');
+
+  if (clientes.length === 0) {
+    sugerencias.classList.add('hidden');
+    return;
+  }
+
+  var html = '';
+  for (var i = 0; i < clientes.length; i++) {
+    html += '<div class="px-4 py-2.5 text-sm hover:bg-slate-50 cursor-pointer" onclick="seleccionarCliente(\'' + clientes[i] + '\')">' + clientes[i] + '</div>';
+  }
+  sugerencias.innerHTML = html;
+  sugerencias.classList.remove('hidden');
+}
+
+// Cerrar sugerencias al hacer click afuera
+document.addEventListener('click', function(e) {
+  var buscador = document.getElementById('buscador-cliente');
+  var sugerencias = document.getElementById('sugerencias-cliente');
+  if (buscador && sugerencias && e.target !== buscador) {
+    sugerencias.classList.add('hidden');
+  }
+});
+
+function prioridad(t) {
+  // Prioridad sugerida en base a estado y vencimiento, para que el contador sepa a qué darle bola primero
+  if (t.estado === 'Bloqueado') return { nivel: 'Urgente', clase: 'badge-red' };
+  var fechasVencidas = ['12/06/2026', '18/06/2026', '19/06/2026'];
+  var fechasProximas  = ['16/06/2026', '17/06/2026', '20/06/2026', '21/06/2026'];
+  if (fechasVencidas.indexOf(t.vencimiento) !== -1 && t.estado !== 'Finalizado') return { nivel: 'Urgente', clase: 'badge-red' };
+  if (fechasProximas.indexOf(t.vencimiento) !== -1 && t.estado !== 'Finalizado') return { nivel: 'Atención', clase: 'badge-yellow' };
+  if (t.estado === 'Finalizado') return { nivel: 'Resuelto', clase: 'badge-green' };
+  return { nivel: 'Normal', clase: 'badge-gray' };
+}
+
+function seleccionarCliente(nombre) {
+  clienteActivo = nombre;
+  document.getElementById('buscador-cliente').value = '';
+  document.getElementById('sugerencias-cliente').classList.add('hidden');
+  document.getElementById('sin-cliente-seleccionado').classList.add('hidden');
+  document.getElementById('detalle-cliente-wrap').classList.remove('hidden');
+  renderDetalleCliente(nombre);
+}
+
+function renderDetalleCliente(nombre) {
+  var tramites = seguimientoData.filter(function(row) { return row.cliente === nombre; });
+
+  document.getElementById('cliente-nombre').textContent = nombre;
+
+  var responsablesUnicos = {};
+  tramites.forEach(function(t) { responsablesUnicos[t.responsable] = true; });
+  var listaResp = Object.keys(responsablesUnicos);
+  document.getElementById('cliente-resumen').textContent =
+    tramites.length + (tramites.length === 1 ? ' trámite' : ' trámites') + ' · Responsable' + (listaResp.length > 1 ? 's: ' : ': ') + listaResp.join(', ');
+
+  var urgentes = tramites.filter(function(t) { return prioridad(t).nivel === 'Urgente'; });
+  document.getElementById('cliente-alerta').classList.toggle('hidden', urgentes.length === 0);
+
+  // KPIs
+  var abiertos = tramites.filter(function(t){ return t.estado !== 'Finalizado'; }).length;
+  var bloqueados = tramites.filter(function(t){ return t.estado === 'Bloqueado'; }).length;
+  var finalizados = tramites.filter(function(t){ return t.estado === 'Finalizado'; }).length;
+
+  var kpis = document.getElementById('cliente-kpis');
+  kpis.innerHTML =
+    '<div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100">' +
+      '<p class="text-slate-400 text-xs uppercase tracking-wide mb-1">Trámites totales</p>' +
+      '<p class="text-2xl font-bold text-slate-800">' + tramites.length + '</p>' +
+    '</div>' +
+    '<div class="bg-white rounded-xl p-4 shadow-sm border border-orange-100">' +
+      '<p class="text-slate-400 text-xs uppercase tracking-wide mb-1">Abiertos</p>' +
+      '<p class="text-2xl font-bold text-orange-500">' + abiertos + '</p>' +
+    '</div>' +
+    '<div class="bg-white rounded-xl p-4 shadow-sm border border-red-100">' +
+      '<p class="text-slate-400 text-xs uppercase tracking-wide mb-1">Bloqueados</p>' +
+      '<p class="text-2xl font-bold text-red-500">' + bloqueados + '</p>' +
+    '</div>' +
+    '<div class="bg-white rounded-xl p-4 shadow-sm border border-green-100">' +
+      '<p class="text-slate-400 text-xs uppercase tracking-wide mb-1">Finalizados</p>' +
+      '<p class="text-2xl font-bold text-green-600">' + finalizados + '</p>' +
+    '</div>';
+
+  // Kanban
+  var columnas = [
+    { estado: 'Pendiente',  titulo: 'Pendiente',  badge: 'badge-gray',   borde: 'border-slate-100' },
+    { estado: 'En Proceso', titulo: 'En Proceso',  badge: 'badge-blue',   borde: 'border-blue-100' },
+    { estado: 'Revisión',   titulo: 'Revisión',    badge: 'badge-yellow', borde: 'border-yellow-100' },
+    { estado: 'Bloqueado',  titulo: 'Bloqueado',   badge: 'badge-red',    borde: 'border-red-100' }
+  ];
+
+  var board = document.getElementById('kanban-cliente-board');
+  var html = '';
+
+  for (var c = 0; c < columnas.length; c++) {
+    var col = columnas[c];
+    var items = tramites.filter(function(t){ return t.estado === col.estado; });
+    html += '<div class="bg-slate-100 p-4 rounded-xl">';
+    html += '<div class="flex items-center justify-between mb-3">';
+    html += '<h3 class="font-semibold text-sm text-slate-600">' + col.titulo + '</h3>';
+    html += '<span class="badge ' + col.badge + '">' + items.length + '</span>';
+    html += '</div>';
+
+    if (items.length === 0) {
+      html += '<p class="text-slate-400 text-xs italic">Sin trámites</p>';
+    }
+
+    for (var j = 0; j < items.length; j++) {
+      var t = items[j];
+      var idxGlobal = seguimientoData.indexOf(t);
+      var pr = prioridad(t);
+      html += '<div class="bg-white p-3 rounded-lg shadow-sm mb-2 ' + col.borde + ' border cursor-pointer hover:shadow-md" onclick="abrirModalDesdeKanban(' + idxGlobal + ')">';
+      html += '<div class="flex items-center justify-between mb-1">';
+      html += '<p class="font-medium text-sm">' + t.descripcion + '</p>';
+      html += '<span class="badge ' + pr.clase + '" style="font-size:10px;">' + pr.nivel + '</span>';
+      html += '</div>';
+      html += '<p class="text-slate-400 text-xs">👤 ' + t.responsable + '</p>';
+      if (t.estado === 'Bloqueado') {
+        html += '<p class="text-red-500 text-xs mt-1">🚧 ' + t.bloqueo + '</p>';
+      } else if (col.estado !== 'Finalizado') {
+        var vencClase = (t.vencimiento === '12/06/2026' || t.vencimiento === '18/06/2026' || t.vencimiento === '19/06/2026') ? 'text-red-500' : 'text-slate-400';
+        html += '<p class="' + vencClase + ' text-xs mt-1">Vence ' + t.vencimiento + '</p>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  board.innerHTML = html;
+}
+
+function abrirModalDesdeKanban(idxGlobal) {
+  // Reusa el modal de detalle, indexando directo sobre seguimientoData (no filasFiltradas)
+  var row = seguimientoData[idxGlobal];
+  document.getElementById('modal-titulo').textContent = row.descripcion;
+  document.getElementById('modal-cliente').textContent = row.cliente;
+  document.getElementById('modal-responsable').textContent = row.responsable;
+  document.getElementById('modal-estado').innerHTML = estadoBadge(row.estado);
+  document.getElementById('modal-vencimiento').textContent = row.vencimiento;
+  document.getElementById('modal-actualizacion').textContent = row.actualizacion;
+  document.getElementById('modal-comentario').textContent = row.comentario;
+  document.getElementById('modal-proximo').textContent = row.proximo;
+
+  var bloqueoWrap = document.getElementById('modal-bloqueo-wrap');
+  if (row.bloqueo) {
+    bloqueoWrap.classList.remove('hidden');
+    document.getElementById('modal-bloqueo').textContent = row.bloqueo;
+  } else {
+    bloqueoWrap.classList.add('hidden');
+  }
+
+  document.getElementById('modal-ver-kanban').onclick = function() {
+    cerrarModal();
+    abrirTramitesCliente(row.cliente);
+  };
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function abrirTramitesCliente(nombre) {
+  showPageByName('kanban-individual');
+  seleccionarCliente(nombre);
+}
+
+function verSeguimientoPorColaborador(nombre) {
+  showPageByName('seguimiento');
+  document.getElementById('filtro-responsable').value = nombre;
+  document.getElementById('filtro-estado').value = '';
+  document.getElementById('filtro-tramite').value = '';
+  filtrarSeguimiento();
+}
 
 // ===== RENDER SEGUIMIENTO =====
 function estadoBadge(estado) {
@@ -981,6 +1327,11 @@ function abrirModal(idx) {
     bloqueoWrap.classList.add('hidden');
   }
 
+  document.getElementById('modal-ver-kanban').onclick = function() {
+    cerrarModal();
+    abrirTramitesCliente(row.cliente);
+  };
+
   document.getElementById('modal-overlay').classList.add('open');
 }
 
@@ -1013,6 +1364,21 @@ function limpiarFiltros() {
   renderSeguimiento(filasFiltradas);
 }
 
+// ===== CUMPLIMIENTO DEL EQUIPO (desplegable dentro de Seguimiento Operativo) =====
+function toggleCumplimientoEquipo() {
+  var tabla = document.getElementById('tabla-cumplimiento-equipo');
+  var icono = document.getElementById('icono-toggle-equipo');
+  var abierto = !tabla.classList.contains('hidden');
+
+  if (abierto) {
+    tabla.classList.add('hidden');
+    icono.textContent = '▾';
+  } else {
+    tabla.classList.remove('hidden');
+    icono.textContent = '▴';
+  }
+}
+
 // ===== NAVEGACIÓN =====
 function showPage(pageId, btn) {
   document.querySelectorAll('.page').forEach(function(p) {
@@ -1027,11 +1393,11 @@ function showPage(pageId, btn) {
   var titles = {
     dashboard:    'Dashboard',
     seguimiento:  'Seguimiento Operativo',
+    'kanban-individual': 'Trámites por Cliente',
     clientes:     'Clientes',
     vencimientos: 'Vencimientos',
     tareas:       'Kanban de Tareas',
     honorarios:   'Honorarios',
-    equipo:       'Equipo',
     crm:          'CRM y Comunicaciones',
     documentos:   'Gestión Documental'
   };
@@ -1055,6 +1421,7 @@ function showPageByName(pageId) {
 
 // ===== INIT =====
 renderSeguimiento(seguimientoData);
+renderChipsClientes();
 
 new Chart(document.getElementById('facturacionChart'), {
   type: 'bar',
